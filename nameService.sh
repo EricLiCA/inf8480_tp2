@@ -6,7 +6,7 @@ popd > /dev/null
 
 cat << EndOfMessage
 HELP:
-./nameService.sh ip_address
+./nameService.sh ip_address port
 EndOfMessage
 
 IPADDR=$1

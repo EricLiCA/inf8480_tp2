@@ -2,118 +2,143 @@
 
 ## Configuration initiale
 
-### IMPORTANT: À faire avant les tests
-
-Ouvrez un terminal pour chacun des postes suivantes avec SSH:
-
-- L4712-27
-- L4712-26
-- L4712-25
-- L4712-24
-- L4712-23
-- L4712-22
+Ouvrer un terminal pour chaque ordinateur qu'on veut avec SSH:
 
 ```
 ssh L4712-XX
 ```
 
-Va dans le dossier du projet et compilez avec ant:
+On veut un ordinateur pour chaque client, serveur de calcul et serveur de nom (4 ordinateurs pour 2 serveurs de calcul).
+
+Aller dans le dossier du projet et compiler avec ant:
 
 ```
-ant
+[silixa@l4712-16 inf8480_tp2 (master)] $ ant
+Buildfile: /usagers3/silixa/inf8480_tp2/build.xml
+
+init:
+
+build-class:
+
+build-jar:
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
 ```
 
-Sur le poste qu'on va utiliser comme serveur de noms (L4712-27), on va trouver l'adresse IP de l'ordinateur:
+## Démarrer le serveur de noms
+
+**Important: redémarrer le serveur de noms chaque fois qu'on arrête les serveurs. Le serveur de noms ne détecte pas si un serveur n'existe plus.**
+
+Sur le poste qu'on va utiliser comme serveur de noms, on va trouver l'adresse IP de l'ordinateur:
 
 ```
-hostname -i
+[silixa@l4712-16 inf8480_tp2 (master)] $ hostname -i
+132.207.12.48
 ```
 
-Modifiez le fichier `nameService.config` dans le projet. Il devrait contenir une ligne avec l'adresse IP et le port (entre 5000 et 5050) de l'ordinateur qui va être hôte du serveur de noms. Il aurait l'air de:
+On va maintenant débuter le serveur de noms avec l'adresse IP et le port qui va être hôte du rmiregistry (utiliser 5001):
 
 ```
-132.207.12.59:5001
+./nameService.sh ip_address port
 ```
 
-Sur l'ordinateur du serveur de noms (L4712-27), fait le commande suivante:
+où `ip_address` = l'adresse trouvé avec `hostname -i` et `port` = le port du rmiregistry (5001).
 
+exemple:
 ```
-./nameService.sh ipAddress
-```
-
-où `ipAddress` est ce qu'on a trouvé avec `hostname -i` précédemment.
-
-L'écran devrait afficher `NameService ready`
-
-## Rouler les tests de performance - mode sécurisé
-
-Redémarrez l'étape qui débute le NameService si vous avez arrêté des serveurs.
-
-Sur chacun des ordinateurs qu'on veut rouler les serveurs de calcul, fait un:
-
-```
-./server.sh ipAddress port q
+[silixa@l4712-16 inf8480_tp2 (master)] $ ./nameService.sh 132.207.12.48 5001
+HELP:
+./nameService.sh ip_address port
+NameService ready
 ```
 
-où q est la capacité à 100% d'acceptation du serveur.
+## Démarrer les serveurs
+
+Sur chacun des ordinateurs qu'on veut rouler les serveurs de calcul, trouver son addresse IP:
+
+```
+[silixa@l4712-15 inf8480_tp2 (master)] $ hostname -i
+132.207.12.47
+```
+
+Démarrer le serveur avec:
+
+```
+./server.sh ip_address port q m
+```
+
+où `ip_address` est l'adresse IP trouvée à l'étape précédente, `q` est la capacité à 100% d'acceptation du serveur et `m` est le taux de résultats malicieux (0 à 100). *Utiliser un port différent du port du serveur de noms (ex. 5003).*
+
+**Exemple mode sécurisé (0% malicieux)**:
+
+```
+[silixa@l4712-15 inf8480_tp2 (master)] $ ./server.sh 132.207.12.47 5003 5 0
+HELP: 
+./server.sh ip_address port q m
+
+Server ready.
+Registered
+```
+
+**Exemple mode non-sécurisé (40% malicieux)**:
+
+```
+[silixa@l4712-15 inf8480_tp2 (master)] $ ./server.sh 132.207.12.47 5003 5 40
+HELP: 
+./server.sh ip_address port q m
+
+Server ready.
+Registered
+```
+
+**Attention: les serveurs doivent être sur des ordinateurs différents!**
+
+## Utiliser le répartiteur
+
+**Faire attention de rouler le client en mode sécurisé ou non, sinon les résultats ne seront pas corrects.**
+
+Finalement, sur l'ordinateur qui roule le client (différent du serveur de noms et des serveurs de calcul), exécuter:
+
+
+**Mode sécurisé**
+
+```
+./client.sh file
+```
+
+où `file` est le fichier d'opérations à effectuer.
 
 exemple:
 
 ```
-./server.sh 132.207.12.58 5003 5
+[silixa@l4712-12 inf8480_tp2 (master)] $ ./client.sh operations-216
+HELP: 
+./client.sh file flag
+
+216
+Execution time: 264
 ```
 
-**Les serveurs doivent être sur des ordinateurs différents!**
+*Lorsqu'on omet le `flag`, le répartiteur va rouler en mode sécurisé.*
 
-Finalement, sur l'ordinateur qui roule le client (différent du serveur de noms et des serveurs de calcul), fait:
+**Mode non-sécurisé**
 
 ```
-./client.sh operations-X
+./client.sh file m
 ```
 
-où X est la terminaison d'un fichier operations.
+où `file` est le fichier d'opérations à effectuer et `m` est un indicateur qu'on est en mode non-sécurisé.
 
 exemple:
 
 ```
-./client.sh operations-216
+[silixa@l4712-12 inf8480_tp2 (master)] $ ./client.sh operations-216 m
+HELP: 
+./client.sh file flag
+
+216
+Execution time: 578
 ```
 
 Ça devrait afficher le résultat du calcul ainsi que le temps d'exécution.
-
-## Rouler les tests de performance - mode non-sécurisé
-
-Redémarrez l'étape qui débute le NameService si vous avez arrêté des serveurs.
-
-Sur chacun des ordinateurs qu'on veut rouler les serveurs de calcul, fait un:
-
-```
-./server.sh ipAddress port q m
-```
-
-où q est la capacité à 100% d'acceptation du serveur et m est le taux de résultats malicieux (entre 0 et 100).
-
-exemple:
-
-```
-./server.sh 132.207.12.58 5003 5 40
-```
-
-**Les serveurs doivent être sur des ordinateurs différents!**
-
-Finalement, sur l'ordinateur qui roule le client (différent du serveur de noms et des serveurs de calcul), fait:
-
-```
-./client.sh operations-X m
-```
-
-où X est la terminaison d'un fichier operations et m est un indicateur que l'algorithme doit gérer les résultats malicieux.
-
-exemple:
-
-```
-./client.sh operations-216 m
-```
-
-Ça devrait afficher le résultat du calcul ainsi que le temps d'exécution.
-

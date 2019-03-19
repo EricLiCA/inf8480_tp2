@@ -6,7 +6,7 @@ popd > /dev/null
 
 cat << EndOfMessage
 HELP: 
-./client.sh
+./client.sh file flag
 
 EndOfMessage
 

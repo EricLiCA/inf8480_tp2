@@ -6,7 +6,7 @@ popd > /dev/null
 
 cat << EndOfMessage
 HELP: 
-./server.sh
+./server.sh ip_address port q m
 
 EndOfMessage
 
